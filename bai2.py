@@ -1,7 +1,10 @@
+
 import sys
+input = sys.stdin.readline
+
+MAX = 100000
 
 def build(n):
-    MAX = 100000
     diff = [0] * (MAX + 2)
 
     for _ in range(n):
@@ -14,35 +17,48 @@ def build(n):
     for i in range(1, MAX + 1):
         dem[i] = dem[i - 1] + diff[i]
 
-    st = [dem[:]]
-    k = MAX.bit_length()
+    return dem[1:]
 
-    for j in range(1, k):
-        prev = st[j - 1]
-        cur = [0] * (MAX + 1)
-        length = 1 << (j - 1)
 
-        for i in range(1, MAX - (1 << j) + 2):
-            cur[i] = max(prev[i], prev[i + length])
+def tao_cay(a, tree, node, left, right):
+    if left == right:
+        tree[node] = a[left]
+        return
 
-        st.append(cur)
+    mid = (left + right) // 2
 
-    return st
+    tao_cay(a, tree, node * 2, left, mid)
+    tao_cay(a, tree, node * 2 + 1, mid + 1, right)
+
+    tree[node] = max(tree[node * 2], tree[node * 2 + 1])
+
+
+def truy_van(tree, node, left, right, a, b):
+    if b < left or right < a:
+        return 0
+
+    if a <= left and right <= b:
+        return tree[node]
+
+    mid = (left + right) // 2
+
+    trai = truy_van(tree, node * 2, left, mid, a, b)
+    phai = truy_van(tree, node * 2 + 1, mid + 1, right, a, b)
+
+    return max(trai, phai)
 
 
 def solve():
-    input = sys.stdin.readline
     n, q = map(int, input().split())
 
-    st = build(n)
+    dem = build(n)
+
+    tree = [0] * (4 * MAX)
+    tao_cay(dem, tree, 1, 0, MAX - 1)
 
     for _ in range(q):
         a, b = map(int, input().split())
-        j = (b - a + 1).bit_length() - 1
-        length = 1 << j
-
-        ans = max(st[j][a], st[j][b - length + 1])
-        print(ans)
+        print(truy_van(tree, 1, 0, MAX - 1, a - 1, b - 1))
 
 
 if __name__ == "__main__":
